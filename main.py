@@ -1,8 +1,10 @@
 # Reports Generator Microservice
 # main
 
-from flask import Flask
-from flask import request
+from flask import Flask, request, jsonify
+
+from reportGeneration import generateReport
+
 
 app = Flask(__name__)
 
@@ -12,8 +14,32 @@ app = Flask(__name__)
 def index():
     return 'Reports Index Page'
 
+# post request with json data from client app
+@app.post('/report')
+def report_post():
+    """ Receive POST request with json data from client.
+
+    Unpack json data from request.
+
+    Pass data object to generateReport function to generate report.
+    """
+    # unpack json data from request
+    data = request.get_json()
+
+    # check for empty data:
+    if not data:
+        return jsonify({"error": "No JSON data received"}), 400
+
+    # pass data object to generateReport function
+    #   generateReport will determine operation
+    #   call appropriate pandas function, which will
+    #   process the data and generate the report
+    generateReport(data)
+    return 'Report Generated'
+
 
 # arbitrary call to index()
+# demonstrate that the app is running and can handle requests
 index()
 
 if __name__ == '__main__':
