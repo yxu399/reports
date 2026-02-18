@@ -53,5 +53,7 @@ def reportSum(data):
 
     # perform sum operation on specified column
 
+    # Create json object containing report data
+
     # return results
     return
