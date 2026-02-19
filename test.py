@@ -4,20 +4,24 @@
 # it just calls the function directly with test data to verify functionality
 
 from reportGeneration import reportSum
+import requests
+import json
+
+BASE_URL = "http://localhost:5001"
 
 # test data
-data = {
+test_data = {
     "report":
     {
         "title": "Report Title",
         "operation": "sum",
         "operation_field": "Cost",
         "filter_field": "Task Name",
-        "filter_value": "HVAC",
+        "filter_value": "",
         "date_field": "Last Performed Date",
         "date_range": {
-            "from": "2026-02-01",
-            "to": "2026-02-14"
+            "from": "2025-01-01",
+            "to": "2025-12-31"
         }
     },
     "data": [
@@ -95,5 +99,66 @@ data = {
     ]
 }
 
-# test reportSum function
-print(reportSum(data))
+print("=" * 60)
+print("Testing Report Generator Microservice")
+print("=" * 60)
+
+# Test 1: Basic report (all data)
+print("\nTest 1: Sum all costs")
+response = requests.post(f"{BASE_URL}/report", json=test_data)
+print(f"Status Code: {response.status_code}")
+
+if response.status_code == 200:
+    result = response.json()
+    total = result.get('result', 0)
+    print(f"Result: ${total}")
+    # 75 + 100 + 220 + 60 + 200 + 120 + 450 = 1225
+    print(f"Expected: $1225")
+    print("✓ PASS" if total == 1225 else "FAIL")
+else:
+    print(f"✗ FAIL - Error: {response.text}")
+
+# Test 2: Sum HVAC costs only (filtered)
+print("\nTest 2: Sum HVAC costs only")
+test_data['report']['filter_value'] = 'HVAC'
+response = requests.post(f"{BASE_URL}/report", json=test_data)
+
+if response.status_code == 200:
+    result = response.json()
+    total = result.get('result', 0)
+    print(f"Result: ${total}")
+    # HVAC Maintenance (220) + HVAC Filter Change (60) = 280
+    print(f"Expected: $280")
+    print("✓ PASS" if total == 280 else "FAIL")
+else:
+    print(f"✗ FAIL - Error: {response.text}")
+
+# Test 3: Sum costs from May-June 2025 (date filter, no category filter)
+print("\nTest 3: Sum costs from May-June 2025")
+test_data['report']['filter_value'] = ''  # Remove category filter
+test_data['report']['date_range'] = {
+    "from": "2025-05-01",
+    "to": "2025-06-30"
+}
+response = requests.post(f"{BASE_URL}/report", json=test_data)
+
+if response.status_code == 200:
+    result = response.json()
+    total = result.get('result', 0)
+    print(f"Result: ${total}")
+    # HVAC Filter Change (60, May 1) + HVAC Maintenance (220, June 1) = 280
+    print(f"Expected: $280")
+    print("✓ PASS" if total == 280 else "FAIL")
+else:
+    print(f"✗ FAIL - Error: {response.text}")
+
+# Test 4: Error handling - missing data field
+print("\nTest 4: Error handling - missing data field")
+bad_request = {"report": {"operation": "sum"}}  # Missing 'data'
+response = requests.post(f"{BASE_URL}/report", json=bad_request)
+print(f"Status Code: {response.status_code}")
+print("✓ PASS" if response.status_code == 400 else "FAIL")
+
+print("\n" + "=" * 60)
+print("Testing Complete!")
+print("=" * 60)

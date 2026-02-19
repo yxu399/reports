@@ -51,15 +51,16 @@ def filterData(dfData, dfSpecs):
 
     Return filtered dataframe.
     """
+    filter_value = dfSpecs['filter_value'][0]
+
     # filter dataframe based on filter field
     #   if there's a value in filter_value,
     #   create dfFiltered dataframe containing filtered rows
-    if len(dfSpecs['filter_value'][0]) > 0:
-        filterField = dfSpecs['filter_field'][0]
-        filterValue = dfSpecs['filter_value'][0]
+    if filter_value and len(str(filter_value)) > 0:
+        filter_field = dfSpecs['filter_field'][0]
         dfFiltered = dfData[
-            dfData[filterField].astype(str).str.contains(
-                filterValue, na=False)
+            dfData[filter_field].astype(str).str.contains(
+                str(filter_value), na=False)
         ]
     #   if field is empty, don't filter,
     #       copy original dataframe to dfFiltered for sum operation
@@ -69,6 +70,25 @@ def filterData(dfData, dfSpecs):
     return dfFiltered
 # end filterData
 
+def filterByDateRange(dfData, dfSpecs):
+    """ Filter data by date range. """
+    date_field = dfSpecs['date_field'][0]
+    
+    # Only filter if date_field is specified
+    if pd.notna(date_field) and len(str(date_field)) > 0:
+        date_from = pd.to_datetime(dfSpecs['from'][0])
+        date_to = pd.to_datetime(dfSpecs['to'][0])
+        
+        # Convert date column to datetime
+        dfData[date_field] = pd.to_datetime(dfData[date_field])
+        
+        # Filter by range
+        dfData = dfData[
+            (dfData[date_field] >= date_from) & 
+            (dfData[date_field] <= date_to)
+        ]
+    
+    return dfData
 
 def reportSum(data):
     """ Receive data json object.
@@ -94,15 +114,26 @@ def reportSum(data):
     # filter data based on filter field
     dfFiltered = filterData(dfData, dfSpecs)
 
+    # apply date range filter
+    dfFiltered = filterByDateRange(dfFiltered, dfSpecs)
+
     # perform sum operation on column specified in operation_field
     sumField = dfSpecs['operation_field'][0]
     sumValue = (dfFiltered[sumField].astype(int).sum())
 
     # Create json object containing report data
     reportData = {
-        "report": dfSpecs.iloc[0].to_dict(),
-        # "filtered_data": dfFiltered.to_dict('records'),
-        "sum": str(sumValue)
+        "title": dfSpecs['title'][0],
+        "operation": dfSpecs['operation'][0],
+        "operation_field": sumField,
+        "filter_field": dfSpecs['filter_field'][0],
+        "filter_value": dfSpecs['filter_value'][0],
+        "date_field": dfSpecs['date_field'][0],
+        "date_range": {
+            "from": dfSpecs['from'][0],
+            "to": dfSpecs['to'][0]
+        },
+        "result": int(sumValue)  # Changed from "sum" to "result" for consistency
     }
 
     # return results
