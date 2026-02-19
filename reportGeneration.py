@@ -20,19 +20,16 @@ def generateReport(data):
     """
     if data['report']['operation'] == "sum":
         return reportSum(data)
+# end generateReport
 
 
-def reportSum(data):
+def prepareDataframes(data):
     """ Receive data json object.
 
-    Filter for filter field.
+    Create dataframes for report specs and data from json object.
 
-    Perform sum operation on specified column using pandas.
-
-    Return results.
+    Return dataframes.
     """
-    # create dataframes for report specs and data from json object
-
     # dataframe for "report specs"
     dfSpecs = pd.DataFrame([data['report']])
     # split date_range into two fields and concatenate back to dfSpecs
@@ -43,15 +40,17 @@ def reportSum(data):
     # dataframe for "data", normalize to split nested fields
     dfData = pd.json_normalize(data['data'])
 
-    # for development phase:
-    #   print dataframes to verify correct parsing of json object
-    #   test print(dfSpecs)
-    print(dfSpecs)
-    #   test print(dfData)
-    print(dfData)
+    return dfSpecs, dfData
+# end prepareDataframes
 
-    # add date range filter here
 
+def filterData(dfData, dfSpecs):
+    """ Receive data and specs dataframes.
+
+    Filter data dataframe based on filter field and value from specs dataframe.
+
+    Return filtered dataframe.
+    """
     # filter dataframe based on filter field
     #   if there's a value in filter_value,
     #   create dfFiltered dataframe containing filtered rows
@@ -63,11 +62,39 @@ def reportSum(data):
                 filterValue, na=False)
         ]
     #   if field is empty, don't filter,
-    #   copy original dataframe to dfFiltered for sum operation
+    #       copy original dataframe to dfFiltered for sum operation
     else:
         dfFiltered = dfData
 
-    # perform sum operation on specified column
+    return dfFiltered
+# end filterData
+
+
+def reportSum(data):
+    """ Receive data json object.
+
+    Filter for filter field.
+
+    Perform sum operation on specified column using pandas.
+
+    Return results.
+    """
+    # get dataframes for report specs and data from json object
+    dfSpecs, dfData = prepareDataframes(data)
+
+    # for development phase:
+    #   print dataframes to verify
+    #   test print(dfSpecs)
+    print(dfSpecs)
+    #   test print(dfData)
+    print(dfData)
+
+    # add date range filter here
+
+    # filter data based on filter field
+    dfFiltered = filterData(dfData, dfSpecs)
+
+    # perform sum operation on column specified in operation_field
     sumField = dfSpecs['operation_field'][0]
     sumValue = (dfFiltered[sumField].astype(int).sum())
 
@@ -80,3 +107,4 @@ def reportSum(data):
 
     # return results
     return reportData
+# end reportSum
