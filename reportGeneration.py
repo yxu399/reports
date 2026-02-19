@@ -3,7 +3,6 @@
 
 # use pandas to process data and generate reports
 import pandas as pd
-from pandas import json_normalize
 
 # pandas settings
 pd.set_option('display.max_columns', None)  # Display all columns
@@ -44,16 +43,40 @@ def reportSum(data):
     # dataframe for "data", normalize to split nested fields
     dfData = pd.json_normalize(data['data'])
 
-    # test print(dfSpecs)
+    # for development phase:
+    #   print dataframes to verify correct parsing of json object
+    #   test print(dfSpecs)
     print(dfSpecs)
-    # test print(dfData)
+    #   test print(dfData)
     print(dfData)
 
+    # add date range filter here
+
     # filter dataframe based on filter field
+    #   if there's a value in filter_value,
+    #   create dfFiltered dataframe containing filtered rows
+    if len(dfSpecs['filter_value'][0]) > 0:
+        filterField = dfSpecs['filter_field'][0]
+        filterValue = dfSpecs['filter_value'][0]
+        dfFiltered = dfData[
+            dfData[filterField].astype(str).str.contains(
+                filterValue, na=False)
+        ]
+    #   if field is empty, don't filter,
+    #   copy original dataframe to dfFiltered for sum operation
+    else:
+        dfFiltered = dfData
 
     # perform sum operation on specified column
+    sumField = dfSpecs['operation_field'][0]
+    sumValue = (dfFiltered[sumField].astype(int).sum())
 
     # Create json object containing report data
+    reportData = {
+        "report": dfSpecs.iloc[0].to_dict(),
+        # "filtered_data": dfFiltered.to_dict('records'),
+        "sum": str(sumValue)
+    }
 
     # return results
-    return
+    return reportData

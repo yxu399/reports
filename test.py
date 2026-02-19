@@ -11,9 +11,9 @@ data = {
     {
         "title": "Report Title",
         "operation": "sum",
-        "operation_field": "cost",
+        "operation_field": "Cost",
         "filter_field": "Task Name",
-        "filter_value": "Sprinkler",
+        "filter_value": "HVAC",
         "date_field": "Last Performed Date",
         "date_range": {
             "from": "2026-02-01",
@@ -84,7 +84,8 @@ data = {
         {
             "id": "task-007",
             "Task Name": "Roof and Gutter Cleaning",
-            "Task Description": "Blow off roof, apply moss treatment, clean gutters",
+            "Task Description": "Blow off roof, apply moss treatment, "
+            "clean gutters",
             "Vendor": "Fly By Might",
             "Part details": "",
             "Frequency": "annual",
@@ -95,4 +96,4 @@ data = {
 }
 
 # test reportSum function
-reportSum(data)
+print(reportSum(data))
