@@ -20,6 +20,8 @@ def generateReport(data):
     """
     if data['report']['operation'] == "sum":
         return reportSum(data)
+    if data['report']['operation'] == "mean":
+        return reportMean(data)
 # end generateReport
 
 
@@ -139,3 +141,52 @@ def reportSum(data):
     # return results
     return reportData
 # end reportSum
+
+def reportMean(data):
+    """ Receive data json object.
+
+    Filter for filter field.
+
+    Perform mean operation on specified column using pandas.
+
+    Return results.
+    """
+    # get dataframes for report specs and data from json object
+    dfSpecs, dfData = prepareDataframes(data)
+
+    # for development phase:
+    #   print dataframes to verify
+    #   test print(dfSpecs)
+    print(dfSpecs)
+    #   test print(dfData)
+    print(dfData)
+
+    # filter data based on filter field
+    dfFiltered = filterData(dfData, dfSpecs)
+
+    # apply date range filter
+    dfFiltered = filterByDateRange(dfFiltered, dfSpecs)
+
+    # perform sum operation on column specified in operation_field
+    meanField = dfSpecs['operation_field'][0]
+    meanValue = (dfFiltered[meanField].astype(int).mean())
+
+    # Create json object containing report data
+    reportData = {
+        "title": dfSpecs['title'][0],
+        "operation": dfSpecs['operation'][0],
+        "operation_field": meanField,
+        "filter_field": dfSpecs['filter_field'][0],
+        "filter_value": dfSpecs['filter_value'][0],
+        "date_field": dfSpecs['date_field'][0],
+        "date_range": {
+            "from": dfSpecs['from'][0],
+            "to": dfSpecs['to'][0]
+        },
+        "result": int(meanValue)  
+    }
+
+    # return results
+    return reportData
+# end reportMean
+

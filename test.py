@@ -1,7 +1,6 @@
 # test file for reportGeneration.py
 # create json object and try reportSum function
-# this test does not use REST API
-# it just calls the function directly with test data to verify functionality
+
 
 from reportGeneration import reportSum
 import requests
@@ -104,7 +103,7 @@ print("Testing Report Generator Microservice")
 print("=" * 60)
 
 # Test 1: Basic report (all data)
-print("\nTest 1: Sum all costs")
+print("\nTest 1.0: Sum all costs")
 response = requests.post(f"{BASE_URL}/report", json=test_data)
 print(f"Status Code: {response.status_code}")
 
@@ -115,6 +114,22 @@ if response.status_code == 200:
     # 75 + 100 + 220 + 60 + 200 + 120 + 450 = 1225
     print(f"Expected: $1225")
     print("✓ PASS" if total == 1225 else "FAIL")
+else:
+    print(f"✗ FAIL - Error: {response.text}")
+
+# Test 1.1: Basic report (all data) for mean
+print("\nTest 1.1: Average all costs")
+test_data['report']['operation'] = 'mean'
+response = requests.post(f"{BASE_URL}/report", json=test_data)
+print(f"Status Code: {response.status_code}")
+
+if response.status_code == 200:
+    result = response.json()
+    total = result.get('result', 0)
+    print(f"Result: ${total}")
+    # (75 + 100 + 220 + 60 + 200 + 120 + 450)/7 = 175
+    print(f"Expected: $175")
+    print("✓ PASS" if total == 175 else "FAIL")
 else:
     print(f"✗ FAIL - Error: {response.text}")
 
@@ -158,6 +173,9 @@ bad_request = {"report": {"operation": "sum"}}  # Missing 'data'
 response = requests.post(f"{BASE_URL}/report", json=bad_request)
 print(f"Status Code: {response.status_code}")
 print("✓ PASS" if response.status_code == 400 else "FAIL")
+
+
+
 
 print("\n" + "=" * 60)
 print("Testing Complete!")
