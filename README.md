@@ -27,14 +27,16 @@ pip install flask pandas requests
    ```bash
    python test.py
    ```
+## UML Diagram
+<img width="794" height="652" alt="image" src="https://github.com/user-attachments/assets/7d2bc9e2-9761-4307-8baa-ed6f41428b26" />
 
-## API Usage
+## API Usage / Example Call
 
 **Endpoint:** `POST /report`
 
 **Request:**
 ```json
-{
+test_data = {
   "report": {
     "title": "Cost Summary",
     "operation": "sum",
@@ -56,6 +58,10 @@ pip install flask pandas requests
   ]
 }
 ```
+**Example Request**
+```
+response = requests.post(f"{(http://localhost:5001)}/report", json=test_data)
+```
 
 **Response:**
 ```json
@@ -73,6 +79,7 @@ pip install flask pandas requests
   "result": 220
 }
 ```
+
 
 ## Filtering Options
 
